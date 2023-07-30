@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SummerFramework", "SummerFramework.csproj", "{E57E937A-6E1B-44B3-A7E9-FE243E5F2FD9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E57E937A-6E1B-44B3-A7E9-FE243E5F2FD9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E57E937A-6E1B-44B3-A7E9-FE243E5F2FD9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E57E937A-6E1B-44B3-A7E9-FE243E5F2FD9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E57E937A-6E1B-44B3-A7E9-FE243E5F2FD9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
