@@ -1,10 +1,11 @@
+![ICON](./icon.png)
+
 # SummerFramework
 
 Framework for .net programs
 
 ## Figures
 - Manage variables through writing configuration file.
-
 
 ## Usage
 
