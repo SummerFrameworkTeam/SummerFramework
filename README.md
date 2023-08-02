@@ -6,6 +6,7 @@ Framework for .net programs
 
 ## Figures
 - Manage variables through writing configuration file.
+- Convenient and simple UnitTest.
 
 ## Usage
 
@@ -81,3 +82,32 @@ If you want to reuse the variables you created before, you can use "ref(target)"
 For the value types, thier value will be clone.
 
 And for the reference types, their reference will be clone.
+
+## UnitTest
+
+SummerFramework has built-in attributes to make sure developers test some functions more conveniently
+
+UnitTest need to take place in class with "TestClass" Attribute, and must mark the method(static) with "Test" Attribute.
+
+Finally, manual run TestController.Run() to enable UnitTest.
+
+```c#
+
+using SummerFramework.Core.Test;
+
+[TestClass]
+public class Program
+{
+  static void Main(string[] args)
+  {
+    TestController.Run();
+  }
+
+  [Test]
+  public static void Test1()
+  {
+    // TODO
+  }
+}
+
+```
