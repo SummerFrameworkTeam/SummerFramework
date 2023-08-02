@@ -1,4 +1,4 @@
-![ICON](./icon.png)
+![ICON](./Icon.png)
 
 # SummerFramework
 
