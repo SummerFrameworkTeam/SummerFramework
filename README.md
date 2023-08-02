@@ -81,12 +81,3 @@ If you want to reuse the variables you created before, you can use "ref(target)"
 For the value types, thier value will be clone.
 
 And for the reference types, their reference will be clone.
-```c#
-
-using SummerFramework.Core.Configuration;
-
-var str = (string) Configuration.GLOBAL.GetObject("str");
-
-Console.WriteLine(str);
-
-```
