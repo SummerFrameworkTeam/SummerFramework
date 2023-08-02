@@ -1,4 +1,5 @@
 ﻿using LitJson;
+using SummerFramework.Base;
 
 namespace SummerFramework.Core.Configuration;
 
@@ -6,7 +7,7 @@ public class ConfigurationContext
 {
     internal string Path { get; set; }
 
-    private Dictionary<string, object> objects = new();
+    public static Dictionary<string, object> objects { get; protected set; } = new();
 
     public ConfigurationContext(string path)
     {
@@ -22,12 +23,18 @@ public class ConfigurationContext
             var current = ce["objects"][i];
             var type = ((string)current["type"]);
             var identifier = ((string)current["identifier"]);
-            var value = ((string)current["value"]);
+            string value;
 
             if (VariableFactory.value_types.Contains(type))
+            {
+                value = ((string)current["value"]);
                 obj = VariableFactory.CreateValueType(type, value);
+            }
             else
+            {
+                value = current["value"].ToJson();
                 obj = VariableFactory.CreateReferenceType(type, value);
+            }
 
             if (obj != null)
                 objects.Add(identifier, obj);
