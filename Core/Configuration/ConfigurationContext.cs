@@ -7,8 +7,6 @@ public class ConfigurationContext
 {
     internal string Path { get; set; }
 
-    public static Dictionary<string, object> objects { get; protected set; } = new();
-
     public ConfigurationContext(string path)
     {
         Path = path;
@@ -37,12 +35,12 @@ public class ConfigurationContext
             }
 
             if (obj != null)
-                objects.Add(identifier, obj);
+                ConfiguredObjectPool.Instance.AddObject(identifier, obj);
         }
     }
 
     public object GetObject(string identifier)
     {
-        return objects[identifier];
+        return ConfiguredObjectPool.Instance.GetObject(identifier);
     }
 }

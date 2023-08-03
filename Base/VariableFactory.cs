@@ -57,7 +57,7 @@ public static class VariableFactory
 
         if (IsReferenceAssignment(value, out string target))
         {
-            result = ConfigurationContext.objects[target];
+            result = ConfiguredObjectPool.Instance.GetObject(target);
             return result;
         }
 
@@ -97,7 +97,7 @@ public static class VariableFactory
         // If there is ref() expression -> find target and return
         if (IsReferenceAssignment(value, out string target))
         {
-            result = ConfigurationContext.objects[target];
+            result = ConfiguredObjectPool.Instance.GetObject(target);
             return result;
         }
 

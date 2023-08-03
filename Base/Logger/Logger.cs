@@ -46,7 +46,16 @@ public class Logger
         this.Error(message);
         throw exception;
     }
-    
+
+    public void Custom(string type, string message, ConsoleColor color)
+    {
+        var m = $"[{type}/{this.Identifier}]:{message}";
+        Console.ForegroundColor = color;
+        Console.WriteLine(m);
+        Console.ForegroundColor = ConsoleColor.White;
+        this.logs.Add(m);
+    }
+
     public void ExportAsFile(string path = "./logs")
     {
         if (!Directory.Exists(path))
