@@ -32,7 +32,53 @@ README语言: [English (英语)](../README.md) | 简体中文 (当前)
 
 ```
 
-然后您调用Configuration类中GLOBAL字段的GetObject(string identifier)方法获取装配好的对象。
+然后您需要调用Configuration类中GLOBAL字段的GetObject(string identifier)方法获取装配好的对象。
+
+```c#
+
+using SummerFramework.Core.Configuration;
+
+var str = (string) Configuration.GLOBAL.GetObject("str");
+
+Console.WriteLine(str);
+
+```
+如果您想装配一个引用类型的对象，您可以这样做。(假设我们有一个Person类，里面有string类型的属性Name以及int类型的属性Age)
+
+```json
+
+{
+  "type": "Test.Person",
+  "identifier": "person"
+  "value": ""
+}
+
+```
+
+如果您留空了value的值，对象将会由其类型的无参构造装配。
+
+如果您想使用有参构造装配对象，您需要像如下一样做(确保参数顺序相同):
+
+```json
+
+{
+  "type": "Test.Person",
+  "identifier": "person"
+  "value": [
+    {
+      "type": "string",
+      "value": "Dave"
+    },
+    {
+      "type": "int",
+      "value": 18
+    }
+  ]
+}
+
+```
+
+如果您想重用您之前创建过的变量值，您可以使用`ref(target)`表达式。
 
 别忘了强制转换成您所需的类型。
 
