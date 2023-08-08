@@ -2,7 +2,9 @@
 
 # SummerFramework
 
-Framework for .net programs
+README Languages: English (Current) | [简体中文 (Simplified Chinese)](./locals/README.zh_cn.md) 
+
+Framework for .NET programs
 
 ## Figures
 - Manage variables through writing configuration file.
