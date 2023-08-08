@@ -2,19 +2,19 @@
 
 # SummerFramework
 
-README Languages: [English (英语)](../README.md) | 简体中文 (当前) 
+README语言: [English (英语)](../README.md) | 简体中文 (当前) 
 
-Framework for .NET programs
+为.NET程序准备的框架。
 
-## Figures
-- Manage variables through writing configuration file.
-- Convenient and simple UnitTest.
+## 特性
+- 允许您通过便携配置文件的方式装配对象。
+- 快捷易用的单元测试。
 
-## Usage
+## 用法
 
-### Object Configuration
+### 对象装配
 
-Firstly,  complete your global configuration file. `(framework and framework_version aren't required, it mean to be seen by developers)`
+首先，补充完您的global_configuration.json文件`(其中framework和framework-version不是必须的，它们用法提醒开发者)`
 
 ```json
 
@@ -32,62 +32,15 @@ Firstly,  complete your global configuration file. `(framework and framework_ver
 
 ```
 
-Secondly, get global object from property `"GLOBAL"` in class `"Configuration"`.
+然后您调用Configuration类中GLOBAL字段的GetObject(string identifier)方法获取装配好的对象。
 
-Don't forget to convert！
+别忘了强制转换成您所需的类型。
 
-```c#
+### 函数装配
 
-using SummerFramework.Core.Configuration;
+为了配置一个函数，您应该在配置文件中新增`methods`区块。
 
-var str = (string) Configuration.GLOBAL.GetObject("str");
-
-Console.WriteLine(str);
-
-```
-
-If you want to create a reference type, you can do like this.(Supposed that we have a class named Person in the namespace named Test, and it has two properties named Name(string) and Age(int))
-
-```json
-
-{
-  "type": "Test.Person",
-  "identifier": "person"
-  "value": ""
-}
-
-```
-
-If value is empty, it will be created by parameterless constructor.
-
-If you want to create with constructor with parameters, you need to do like this.
-
-```json
-
-{
-  "type": "Test.Person",
-  "identifier": "person"
-  "value": [
-    {
-      "type": "string",
-      "value": "Dave"
-    },
-    {
-      "type": "int",
-      "value": 18
-    }
-  ]
-}
-
-```
-
-If you want to reuse the variables you created before, you can use `ref(target)`.
-
-### Function Configuration
-
-To configrue a function, you should add section named `methods` to your config file.
-
-and assign its identifier and link.
+然后指定其标识符和方法链接。
 
 ```json
 
@@ -101,15 +54,15 @@ and assign its identifier and link.
 
 ```
 
-You have to use format like `class_name@method_name` to assgin a link.
+您需要使用`类名@方法名`这样的格式指定方法链接
 
-When you want to invoke this method in section `objects`, you can write `@add(1,1)` in property `value`. (No space!)
+当您想要在`objects`区块中调用这个函数时，您需将`value`属性写成`@add(1,1)`的形式 (不允许空格间隔)
 
-### Aspect Injection
+### 切面注入
 
-Suppose a scene, you have to check if your door is close after you go outside.
+想想这样一个场景，您需要在您出门之后检查一下门是否关上了。
 
-It looks like this if in code:
+如果写成代码，会是如下的样子:
 
 ```c#
 
@@ -121,13 +74,13 @@ if (!person.CheckDoorClosed())
 
 ```
 
-As you can see the action `CloseDoor` is more complicated than others.
+如您所见，`关门`的逻辑要比其他的逻辑更复杂一些。
 
-In a real develop scene, there are full of complicated logic problems that need to be solve, so there are lots of code reusage!
+在真实的开发场景中有数不胜数的复杂逻辑问题待定解决，故而会有很多代码重复情况！
 
-By using Aspect Injection, you can reduce code reusage.
+通过使用切面注入，您便可以减少代码重复。
 
-In order to do something after `GoOut()`, we should set the method `GoOut` into virtual method and mark attribute named `After` and assgin a name of the `AfterAction`.
+为了在`GoOut()`运行完之后做一些事情，我们需要将GoOut函数设定为虚方法，并且标记上`After`特性，并指定`AfterAction`的名称
 
 ```c#
 
@@ -144,7 +97,7 @@ public class Person
 }
 ```
 
-Don't forget to add `CloseDoor` in class `AspectHandler`!
+别忘记将`CloseDoor` 通过`AspectHandler`添加方法!
 
 ```c#
 
@@ -155,15 +108,15 @@ AspectHandler.AddAfter("CloseDoor", () => {
 
 ```
 
-And then the logic `CloseDoor` can be invoked automatically!
+然后便可以自动地在GoOut()执行完之后自动执行`CloseDoor`了！
 
-### UnitTest
+### 单元测试
 
-SummerFramework has built-in attributes to make sure developers test some functions more conveniently
+SummerFramework内置了一些特性用于保证开发者更方便地测试一些功能 
 
-UnitTest need to take place in class with "TestClass" Attribute, and must mark the method(static) with "Test" Attribute.
+单元测试应当在被标记了`TestClass`的类中进行，并且要测试的方法必须为静态方法且带有`Test`特性。
 
-Finally, manual run TestController.Run() to enable UnitTest.
+最后，在程序主入口中执行`TestController.Run()`来启用单元测试
 
 ```c#
 
