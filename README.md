@@ -10,7 +10,9 @@ Framework for .net programs
 
 ## Usage
 
-Firstly,  complete your global configuration file. (framework and framework_version aren't required, it mean to be seen by developers)
+### Object Configuration
+
+Firstly,  complete your global configuration file. `(framework and framework_version aren't required, it mean to be seen by developers)`
 
 ```json
 
@@ -28,7 +30,7 @@ Firstly,  complete your global configuration file. (framework and framework_vers
 
 ```
 
-Secondly, get global object from property "GLOBAL" in class "Configuration".
+Secondly, get global object from property `"GLOBAL"` in class `"Configuration"`.
 
 Don't forget to convert！
 
@@ -54,7 +56,7 @@ If you want to create a reference type, you can do like this.(Supposed that we h
 
 ```
 
-If value is empty, it will be created by constructor without any parameters.
+If value is empty, it will be created by parameterless constructor.
 
 If you want to create with constructor with parameters, you need to do like this.
 
@@ -77,13 +79,83 @@ If you want to create with constructor with parameters, you need to do like this
 
 ```
 
-If you want to reuse the variables you created before, you can use "ref(target)" expression
+If you want to reuse the variables you created before, you can use `ref(target)`.
 
-For the value types, thier value will be clone.
+### Function Configuration
 
-And for the reference types, their reference will be clone.
+To configrue a function, you should add section named `methods` to your config file.
 
-## UnitTest
+and assign its identifier and link.
+
+```json
+
+"methods": {
+  {
+    "type": "function",
+    "identifier": "add",
+    "link": "TestSummer.Math@Add"
+  }
+}
+
+```
+
+You have to use format like `class_name@method_name` to assgin a link.
+
+When you want to invoke this method in section `objects`, you can write `@add(1,1)` in property `value`. (No space!)
+
+### Aspect Injection
+
+Suppose a scene, you have to check if your door is close after you go outside.
+
+It looks like this if in code:
+
+```c#
+
+person.OpenDoor();
+person.GoOut();
+
+if (!person.CheckDoorClosed())
+  person.CloseDoor();
+
+```
+
+As you can see the action `CloseDoor` is more complicated than others.
+
+In a real develop scene, there are full of complicated logic problems that need to be solve, so there are lots of code reusage!
+
+By using Aspect Injection, you can reduce code reusage.
+
+In order to do something after `GoOut()`, we should set the method `GoOut` into virtual method and mark attribute named `After` and assgin a name of the `AfterAction`.
+
+```c#
+
+using SummerFramework.Core.Aop;
+
+public class Person
+{
+...
+  [After("CloseDoor")]
+  public virtual GoOut()
+  {
+    //TODO: Go out
+  }
+}
+```
+
+Don't forget to add `CloseDoor` in class `AspectHandler`!
+
+```c#
+
+AspectHandler.AddAfter("CloseDoor", () => {
+  if (!person.CheckDoorClosed())
+  person.CloseDoor();
+});
+
+```
+
+And then the logic `CloseDoor` can be invoked automatically!
+
+### UnitTest
 
 SummerFramework has built-in attributes to make sure developers test some functions more conveniently
 
