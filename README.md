@@ -6,7 +6,7 @@ README Languages: English (Current) | [简体中文 (Simplified Chinese)](./loca
 
 Framework for .NET programs
 
-## Figures
+## Features
 - Manage variables through writing configuration file.
 - Convenient and simple UnitTest.
 
@@ -157,6 +157,14 @@ AspectHandler.AddAfter("CloseDoor", () => {
 
 And then the logic `CloseDoor` can be invoked automatically!
 
+If you want to pass the value of a expression to another expression, you should't nest invoke but by using pipeline operator (`|>`)
+
+```json
+
+"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+
+```
+
 ### UnitTest
 
 SummerFramework has built-in attributes to make sure developers test some functions more conveniently
@@ -167,7 +175,7 @@ Finally, manual run TestController.Run() to enable UnitTest.
 
 ```c#
 
-using SummerFramework.Core.Test;
+using SummerFramework.Core.UnitTest;
 
 [TestClass]
 public class Program
