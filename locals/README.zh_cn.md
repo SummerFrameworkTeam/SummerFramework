@@ -14,7 +14,7 @@ README语言: [English (英语)](../README.md) | 简体中文 (当前)
 
 ### 对象装配
 
-首先，补充完您的global_configuration.json文件`(其中framework和framework-version不是必须的，它们用法提醒开发者)`
+首先，补充完您的global_configuration.json文件`(其中framework和framework-version不是必须的，它们用于提醒开发者)`
 
 ```json
 
@@ -120,7 +120,7 @@ if (!person.CheckDoorClosed())
 
 ```
 
-如您所见，`关门`的逻辑要比其他的逻辑更复杂一些。
+如您所见，关门的逻辑要比其他的逻辑更复杂一些。
 
 在真实的开发场景中有数不胜数的复杂逻辑问题待定解决，故而会有很多代码重复情况！
 
@@ -155,6 +155,14 @@ AspectHandler.AddAfter("CloseDoor", () => {
 ```
 
 然后便可以自动地在GoOut()执行完之后自动执行`CloseDoor`了！
+
+如果您想从一个表达式向另一个表达式传递值，您不必嵌套式地调用，而是应当使用管道运算符 (`|>`)
+
+```json
+
+"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+
+```
 
 ### 单元测试
 
