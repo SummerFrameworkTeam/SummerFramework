@@ -1,4 +1,4 @@
-![ICON](./icon.png) ![LONG_ICON](./long_icon.png)
+![ICON](../icon.png) ![LONG_ICON](../long_icon.png)
 
 # SummerFramework
 
