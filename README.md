@@ -109,7 +109,7 @@ If you want to pass the value of a expression to another expression, you should'
 
 ```json
 
-"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, 1)"
 
 ```
 
