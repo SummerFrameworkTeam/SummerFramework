@@ -1,6 +1,9 @@
 ﻿using System.Reflection;
+
 using LitJson;
+
 using SummerFramework.Base;
+using SummerFramework.Base.Data;
 
 namespace SummerFramework.Core.Configuration;
 
@@ -22,14 +25,16 @@ public class ConfigurationContext
                 MethodInfo? dlgt;
 
                 var current = ce["methods"][i];
-                var type = ((string)current["type"]);
+                ObjectFactory.IsReferenceExpression((string)current["invoked"], out var invoked);
+                
                 var identifier = ((string)current["identifier"]);
                 var link = (string)current["link"];
 
                 dlgt = ObjectFactory.GetFunction(link);
 
                 if (dlgt != null)
-                    ConfiguredMethodPool.Instance.Add(identifier, dlgt);
+                    ConfiguredMethodPool.Instance.Add(identifier, 
+                        new MethodObject(ConfiguredObjectPool.Instance.CreateDeferringObject(invoked), dlgt));
             }
         }
 
@@ -42,11 +47,19 @@ public class ConfigurationContext
             var identifier = ((string)current["identifier"]);
             string value;
 
-            if (((string)current["value"]).StartsWith("@"))
+            if (current["value"].IsString && 
+                (((string)current["value"]).StartsWith("@") || 
+                ((string)current["value"]).Contains(" |> ")))
             {
-                ObjectFactory.IsMethodInvoke((string)current["value"], out obj);
+                var inv_chains = ((string)current["value"]).Split(" |> ");
+
+                if (inv_chains.Length > 1)
+                    obj = ObjectFactory.InvokeChainsytle(inv_chains);
+                else
+                    ObjectFactory.IsMethodInvoke((string)current["value"], out obj);
+
                 ConfiguredObjectPool.Instance.Add(identifier, obj!);
-                break;
+                continue;
             }
 
             if (ObjectFactory.value_types.Contains(type))

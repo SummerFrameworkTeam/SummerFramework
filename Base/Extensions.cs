@@ -20,6 +20,11 @@ public static class Extensions
         TestController.logger.Info(self.ToString()!);
     }
 
+    public static void ForeachPrint<T>(this T[] self)
+    {
+        self.ToList().ForEach(i => TestController.logger.Info(i?.ToString()!));
+    }
+
     public static ConstructorInfo GetParameterlessConstructor(this Type self)
     {
         return self.GetConstructors(BindingFlags.Public | BindingFlags.Instance).First(c => c.GetParameters().Length == 0);

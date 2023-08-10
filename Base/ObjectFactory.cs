@@ -55,7 +55,7 @@ public static class ObjectFactory
         if (!value_types.Contains(type))
             return null;
 
-        if (IsReferenceAssignment(value, out string target))
+        if (IsReferenceExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -95,7 +95,7 @@ public static class ObjectFactory
         Assembly current_assembly = Assembly.GetEntryAssembly()!;
 
         // If there is ref() expression -> find target and return
-        if (IsReferenceAssignment(value, out string target))
+        if (IsReferenceExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -145,7 +145,7 @@ public static class ObjectFactory
         return null;
     }
 
-    public static bool IsReferenceAssignment(string assignment, out string result)
+    public static bool IsReferenceExpression(string assignment, out string result)
     {
         try
         {
@@ -157,7 +157,7 @@ public static class ObjectFactory
             }
         } catch (Exception) { }
 
-        Regex pattren = new Regex(@"\((\w+)\)");
+        var pattren = new Regex(@"\((\w+)\)");
 
         var match = pattren.Match(assignment).Value;
         match = match.TrimStart('(');
@@ -251,7 +251,7 @@ public static class ObjectFactory
         var type_name = link.Split('@')[0];
         var method_name = link.Split('@')[1];
 
-        var target_method = current_assembly.GetType(type_name)?.GetMethod(method_name, BindingFlags.Static | BindingFlags.Public);
+        var target_method = current_assembly.GetType(type_name)?.GetMethod(method_name);
         result = target_method;
         return result;
     }
@@ -275,32 +275,36 @@ public static class ObjectFactory
                 var curr = invocation[i].ToString();
 
                 if (curr.Equals("("))
+                {
                     b = i;
+                    break;
+                }
             }
 
             for (int i = 1; i < b; i++)
-            {
                 meth_name += invocation[i].ToString();
-            }
 
             var args_str = pattren.Match(invocation).Value.TrimStart('(').TrimEnd(')').Split(',');
 
             var meth = ConfiguredMethodPool.Instance.Get(meth_name);
 
-            if (meth.GetParameters().ToList().Count != args_str.Length)
-                throw new ArgumentException($"The number of argument dosen't match! (Need:{meth.GetParameters().ToList().Count}, Actual: {args_str.Length})");
+            if (meth.MethodBody.GetParameters().ToList().Count != args_str.Length)
+                throw new ArgumentException($"The number of argument dosen't match! (Need:{meth.MethodBody.GetParameters().ToList().Count}, Actual: {args_str.Length})");
 
-            List<object?> arguments = new();
+            var arguments = new List<object?>();
             for (int i = 0; i < args_str.Length; i++)
             {
-                var param = meth.GetParameters()[i];
+                var param = meth.MethodBody.GetParameters()[i];
                 var p_type = param.ParameterType;
 
                 var arg = args_str[i];
-
+                
                 arguments.Add(Convert.ChangeType(arg, p_type));
             }
-            result = meth.Invoke(null, arguments.ToArray());
+
+            result = meth.MethodBody.Invoke((!meth.MethodBody.IsStatic) ? 
+                ConfiguredObjectPool.Instance.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject.Identifier) : null, 
+                    arguments.ToArray());
 
             flag = true;
         }
@@ -310,5 +314,37 @@ public static class ObjectFactory
             result = null;
         }
         return flag;
+    }
+
+    public static object? InvokeChainsytle(string[] target)
+    {
+        var chainlist = target.ToList();
+        /*
+         * @add(2,2) |> @add(&,1)
+         * Spliting ↓
+         * [@add(2,2), @add(&,1)]
+         * If (first) ↓
+         * var v = Invoke(chainlist[first])
+         * Else ↓
+         * Replace "&" with v (previous value) => invoc
+         * v = Invoke(invoc);
+         */
+        object? last_result = null;
+        foreach (var item in chainlist)
+        {
+            if (IsReferenceExpression(item, out var ref_target))
+            {
+                last_result = ConfiguredObjectPool.Instance.Get(ref_target);
+                continue;
+            }
+
+            if (chainlist.IndexOf(item) == 0)
+                IsMethodInvoke(item, out last_result);
+
+            var invoc = item.Replace("&", Convert.ToString(last_result));
+            IsMethodInvoke(invoc, out last_result);
+        }
+
+        return last_result;
     }
 }
