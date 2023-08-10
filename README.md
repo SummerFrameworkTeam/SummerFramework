@@ -105,6 +105,16 @@ You have to use format like `class_name@method_name` to assgin a link.
 
 When you want to invoke this method in section `objects`, you can write `@add(1,1)` in property `value`. (No space!)
 
+If you want to pass the value of a expression to another expression, you should't nest invoke but by using pipeline operator (`|>`).
+
+```json
+
+"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+
+```
+
+`ref()`expression is also supported!
+
 ### Aspect Injection
 
 Suppose a scene, you have to check if your door is close after you go outside.
@@ -157,13 +167,43 @@ AspectHandler.AddAfter("CloseDoor", () => {
 
 And then the logic `CloseDoor` can be invoked automatically!
 
-If you want to pass the value of a expression to another expression, you should't nest invoke but by using pipeline operator (`|>`)
+### Deferred Task System
 
-```json
+Imagine that, if you want to use a object that has't created in a method, meanwhile, you also want to hold a place for it by its property.
 
-"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+Deferred Task System was built to solve this problem.
+
+It allows you to hold a place for the object and provide a propety named `Identifier` to ascertain it by creating a instance of class `TaskManager<T>`.
+
+```c#
+
+using SummerFramework.Core.Task;
+
+...
+private TaskManager<object> task_manager;
 
 ```
+
+Then you need to know something about class `DeferredTask<T>`:
+
+It has two propeties `Identifier (string)` and `Task (Func<T>)`,  `Identifier` is used to ascertain which place is for this object, `Task` is used to get the value of this object.
+
+```c#
+
+task_manager.AddTask(new DeferreedTask<object>("deferred_init_object_a", CreateObject());
+
+```
+
+(`CreateObject` refers to the method you created for initing this object)
+
+And when you think it's a good time to create it, you can use method `Run` or `RunSpecified` in `TaskManager<T>`.
+
+`TIPS: The tasks is stored in a Stack<T>, that's why the last task you added will invoke firstly when you invoke task_manager.Run()`
+
+`var object_real = task_manager.Run();`
+
+When you hope you can run the task you want, you should use `RunSpecified(string id)`.
+
 
 ### UnitTest
 
