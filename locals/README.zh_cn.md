@@ -100,9 +100,19 @@ Console.WriteLine(str);
 
 ```
 
-您需要使用`类名@方法名`这样的格式指定方法链接
+您需要使用`类名@方法名`这样的格式指定方法链接，
 
-当您想要在`objects`区块中调用这个函数时，您需将`value`属性写成`@add(1,1)`的形式 (不允许空格间隔)
+当您想要在`objects`区块中调用这个函数时，您需将`value`属性写成`@add(1,1)`的形式 (不允许空格间隔)。
+
+如果您想从一个表达式向另一个表达式传递值，您不必嵌套式地调用，而是应当使用管道运算符 (`|>`)。
+
+```json
+
+"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+
+```
+
+`ref()`表达式同样支持！
 
 ### 切面注入
 
@@ -156,13 +166,42 @@ AspectHandler.AddAfter("CloseDoor", () => {
 
 然后便可以自动地在GoOut()执行完之后自动执行`CloseDoor`了！
 
-如果您想从一个表达式向另一个表达式传递值，您不必嵌套式地调用，而是应当使用管道运算符 (`|>`)
+### 延迟化任务系统
 
-```json
+想想一下，如果您想在一个方法中使用一个暂时未被创建的对象，同时，您还想用这个对象的属性来做一个占位操作。
 
-"value": "@add(1,1) |> @sub(&, 1) |> @ mul(&, )1"
+延迟化任务系统就是用来解决这个问题的
+
+这套系统允许您通过创建`TaskManager<T>`类实例的方式来为对象占位，并提供了`Identifier`等属性来锁定这个对象。
+```c#
+
+using SummerFramework.Core.Task;
+
+...
+private TaskManager<object> task_manager;
 
 ```
+
+然后您需要知道一些关于 `DeferredTask<T>`类的一些事情:
+
+这个类包含了两个属性 `Identifier (string)`和`Task (Func<T>)`，`Identifier`属性用于确定哪个位置是留给这个对象的，而`Task`属性则用于稍后得到此对象的实际值。
+
+```c#
+
+task_manager.AddTask(new DeferreedTask<object>("deferred_init_object_a", CreateObject());
+
+```
+
+(`CreateObject`是您用来初始化此对象的方法)
+
+And when you think it's a good time to create it, you can use method `Run` or `RunSpecified` in `TaskManager<T>`.
+而当您认为某个时刻是创建它的好机会时，您就可以使用 `TaskManager<T>`类中的`Run`或`RunSpecified`方法来的真正初始化了。
+
+`TIPS: 任务以Stack<T>的形势被存放，所以您会遇到最后添加的任务最先被执行的情况`
+
+`var object_real = task_manager.Run();`
+
+当您想要执行某个您想执行的任务时，您应当使用`RunSpecified(string id)`方法，并传入其唯一的标识符。
 
 ### 单元测试
 
