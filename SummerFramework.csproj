@@ -13,7 +13,7 @@
         <PackageProjectUrl>https://github.com/SummerFrameworkTeam/SummerFramework</PackageProjectUrl>
         <Copyright>MIT License</Copyright>
         <Description>Framework for .NET Progams to make you develop easier</Description>
-        <Version>1.0.1</Version>
+        <Version>1.0.1.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
