@@ -66,7 +66,7 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
                 continue;
             }
 
-            if (TypeExtractor.value_types.Contains(type))
+            if (TypeExtractor.vt_mappings.ContainsKey(type))
             {
                 value = ((string)current["value"]);
                 obj = ObjectFactory.CreateValueType(type, value);

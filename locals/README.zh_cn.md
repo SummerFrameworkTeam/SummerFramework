@@ -1,4 +1,7 @@
-![ICON](../icon.png) ![LONG_ICON](../long_icon.png)
+![ICON](./showing_image.png)
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/dotnetcore/CAP/master/LICENSE.txt)
+[![NuGet](http://img.shields.io/nuget/v/SummerFramework.svg)](https://www.nuget.org/packages/SummerFramework) [![Downloads](https://img.shields.io/nuget/dt/SummerFramework)](#)
 
 # SummerFramework
 
@@ -8,9 +11,10 @@ README语言: [English (英语)](../README.md) | 简体中文 (当前)
 
 ## 特性
 - 允许您通过便携配置文件的方式装配对象。
-- 快捷易用的单元测试。
+- 轻量且易用
+- 内置了简单易用的单元测试。
 
-## 用法
+## 文档
 
 ### 对象装配
 
@@ -112,7 +116,73 @@ Console.WriteLine(str);
 
 ```
 
-`ref()`表达式同样支持！
+`ref()`表达式同样支持。
+
+然而当您想要链接一个实例方法时该怎么办呢？
+
+只要向您的方法对象中新指定一个名称为`invoked`，值为`ref(target)`表达式的新属性即可。
+
+```json
+
+"methods": [
+  {
+    "type": "i_func",
+    "identifier": "add",
+    "link": "TestSummer.Math@Add",
+    "invoked": "ref(math_instance)" 
+  }
+]
+
+```
+
+### 利用属性注入的上下文配置
+
+使用json配置文件尽管灵活、便于管理，但项目一旦庞大起来就会配置文件十分臃肿且冗长、可读性差。
+
+因此，我们引入了`AttributiveConfigurationContext`来允许您通过创建配置类(推荐是静态类)的方式进行配置：
+
+```c#
+
+using SummerFramework.Core.Configuration.Attributes;
+
+public static class Config
+{
+  [ConfiguredObject("str")]
+  public static string STR { get; set; } = "Hello Summer!";
+}
+
+```
+
+如您所见，特性标注的方式只能作用于属性上，因为属性相对字段更加安全。
+
+`ConfiguredObject`特性用于通过指定id的方式将属性添加至到变量池中，实际上无参构造引用类型和值类型的装配都可以通过这种方式。
+
+但当您想要使用有参构造函数装配时，您需要这样做：
+
+```c#
+
+[ConfiguredObject("name")]
+public static string STR { get; set; } = "Mike";
+
+[ConfiguredObject("person")]
+[ConfiguredParameter(typeof(string), "ref(name)")]
+[ConfiguredParameter(typeof(int), "18")]
+public static Person PERSON { get; set; }
+
+```
+
+使用的时候只需要创建`AttributiveConfigurationContext`类的实例即可照常使用。
+
+```c#
+
+var context = AttributiveConfigurationContext.Create<Config>();
+// or var context = AttributiveConfigurationContext.Create(typeof(Config));
+
+var person  = (Person)context.GetObject("perosn");
+
+Console.WriteLine(person.ToString());
+//out(formatted): Person[Name: Mike | Age: 18 ]
+```
 
 ### 切面注入
 
@@ -188,13 +258,12 @@ private TaskManager<object> task_manager;
 
 ```c#
 
-task_manager.AddTask(new DeferreedTask<object>("deferred_init_object_a", CreateObject());
+task_manager.AddTask(new DeferredTask<object>("deferred_init_object_a", CreateObject());
 
 ```
 
-(`CreateObject`是您用来初始化此对象的方法)
+(`CreateObject()`是您用来初始化此对象的方法)
 
-And when you think it's a good time to create it, you can use method `Run` or `RunSpecified` in `TaskManager<T>`.
 而当您认为某个时刻是创建它的好机会时，您就可以使用 `TaskManager<T>`类中的`Run`或`RunSpecified`方法来的真正初始化了。
 
 `TIPS: 任务以Stack<T>的形势被存放，所以您会遇到最后添加的任务最先被执行的情况`

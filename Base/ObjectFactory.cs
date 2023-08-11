@@ -12,7 +12,7 @@ public static class ObjectFactory
     {
         object? result = null;
 
-        if (!TypeExtractor.value_types.Contains(type))
+        if (!TypeExtractor.vt_mappings.ContainsKey(type))
             return null;
 
         if (SyntaxPhaser.PhaseRefExpression(value, out string target))
@@ -73,8 +73,8 @@ public static class ObjectFactory
 
         if (v.IsArray)
         {
-            List<object?>? parameters = new List<object?>();
-            List<Type?>? parameter_types = new List<Type?>();
+            var parameters = new List<object?>();
+            var parameter_types = new List<Type?>();
 
             for (int i = 0; i < v.Count; i++)
             {
@@ -83,7 +83,7 @@ public static class ObjectFactory
                 var p_type = (string) v[i]["type"];
                 var p_value = v[i]["value"];
 
-                if (TypeExtractor.value_types.Contains(p_type))
+                if (TypeExtractor.vt_mappings.ContainsKey(p_type))
                 {
                     parameter = CreateValueType(p_type, p_value.ToString());
                     parameter_types.Add(TypeExtractor.GetValueTypeFromShortName(p_type));

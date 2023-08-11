@@ -6,13 +6,13 @@ namespace SummerFramework.Core.Configuration.Attributes;
 [AttributeUsage(AttributeTargets.Property, AllowMultiple = true)]
 public class ConfiguredParametersAttribute : Attribute
 {
-    public Type RefTargetType { get; set; }
+    public Type ParameterType { get; set; }
 
-    public string RefTargetIdentifier { get; set; }
+    public string ParameterValue { get; set; }
 
-    public ConfiguredParametersAttribute(Type ref_target_type, string ref_target_id)
+    public ConfiguredParametersAttribute(Type param_type, string param_value)
     {
-        RefTargetType = ref_target_type;
-        RefTargetIdentifier = ref_target_id;
+        ParameterType = param_type;
+        ParameterValue = param_value;
     }
 }

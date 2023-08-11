@@ -1,16 +1,20 @@
-![ICON](./icon.png) ![LONG_ICON](./long_icon.png)
+![ICON](./showing_image.png)
+
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/dotnetcore/CAP/master/LICENSE.txt)
+[![NuGet](http://img.shields.io/nuget/v/SummerFramework.svg)](https://www.nuget.org/packages/SummerFramework) [![Downloads](https://img.shields.io/nuget/dt/SummerFramework)](#)
 
 # SummerFramework
 
 README Languages: English (Current) | [简体中文 (Simplified Chinese)](./locals/README.zh_cn.md) 
 
-Framework for .NET programs
+Framework for .NET programs in order to make development easier and faster!
 
 ## Features
-- Manage variables through writing configuration file.
+- Manage obejcts through writing configuration file or attributes.
+- Lightweight and easy to use.
 - Convenient and simple UnitTest.
 
-## Usage
+## Documents
 
 ### Object Configuration
 
@@ -91,13 +95,13 @@ and assign its identifier and link.
 
 ```json
 
-"methods": {
+"methods": [
   {
-    "type": "function",
+    "type": "s_func",
     "identifier": "add",
     "link": "TestSummer.Math@Add"
   }
-}
+]
 
 ```
 
@@ -114,6 +118,73 @@ If you want to pass the value of a expression to another expression, you should'
 ```
 
 `ref()`expression is also supported!
+
+How can you do when you want to link a instance method?
+
+Just add a new property whose name is `invoked` and value is a `ref(target)` to your method object.
+
+```json
+
+"methods": [
+  {
+    "type": "i_func",
+    "identifier": "add",
+    "link": "TestSummer.Math@Add",
+    "invoked": "ref(math_instance)" 
+  }
+]
+
+```
+
+### 利用属性注入的上下文配置
+
+Even if it's flexible and easy to manage the whole project. But it will be slow, inefficient and unreadable as the project is growing bigger.
+
+So we provided class `AttributiveConfigurationContext` to make you configure more conveniently and efficiently by creating configuration class.
+
+```c#
+
+using SummerFramework.Core.Configuration.Attributes;
+
+public static class Config
+{
+  [ConfiguredObject("str")]
+  public static string STR { get; set; } = "Hello Summer!";
+}
+
+```
+
+As you can see, the attribute `ConfiguredObject` can only be used on property. Because property is safe.
+
+Attribute`ConfiguredObject` allow you to add this property into the pool by giving an id.
+
+And actually you can do this to configure reference types with parameterless constructor and value types.
+
+But when you want to configure a reference types with parametric constructor, you must do like this: 
+
+```c#
+
+[ConfiguredObject("name")]
+public static string STR { get; set; } = "Mike";
+
+[ConfiguredObject("person")]
+[ConfiguredParameter(typeof(string), "ref(name)")]
+[ConfiguredParameter(typeof(int), "18")]
+public static Person PERSON { get; set; }
+
+```
+
+You can just need to create an instance of `AttributiveConfigurationContext` and use it as other context objects.
+```c#
+
+var context = AttributiveConfigurationContext.Create<Config>();
+// or var context = AttributiveConfigurationContext.Create(typeof(Config));
+
+var person  = (Person)context.GetObject("perosn");
+
+Console.WriteLine(person.ToString());
+//out(formatted): Person[Name: Mike | Age: 18 ]
+```
 
 ### Aspect Injection
 
@@ -190,11 +261,11 @@ It has two propeties `Identifier (string)` and `Task (Func<T>)`,  `Identifier` i
 
 ```c#
 
-task_manager.AddTask(new DeferreedTask<object>("deferred_init_object_a", CreateObject());
+task_manager.AddTask(new DeferredTask<object>("deferred_init_object_a", CreateObject());
 
 ```
 
-(`CreateObject` refers to the method you created for initing this object)
+(`CreateObject()` refers to the method you created for initing this object)
 
 And when you think it's a good time to create it, you can use method `Run` or `RunSpecified` in `TaskManager<T>`.
 

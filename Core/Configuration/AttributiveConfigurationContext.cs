@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+
 using SummerFramework.Base;
 using SummerFramework.Core.Configuration.Attributes;
 
@@ -29,22 +28,40 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
         {
             object? invoked = prop.GetMethod!.IsStatic ? null : Activator.CreateInstance(ConfigurationClass);
 
-            if (prop.GetCustomAttributes<ConfiguredParametersAttribute>().Count() != 0)
+            if (prop.GetCustomAttributes<ConfiguredParametersAttribute>().Any())
             {
                 var param_attrs = prop.GetCustomAttributes<ConfiguredParametersAttribute>();
 
                 var constructor_parameters = new Dictionary<Type, object?>();
 
                 foreach (var param_attr in param_attrs)
-                    constructor_parameters.Add(param_attr.RefTargetType,
-                        ConfiguredObjectPool.Instance.Get(param_attr.RefTargetIdentifier));
+                {
+                    if (SyntaxPhaser.PhaseRefExpression(param_attr.ParameterValue, out var ref_target_id))
+                    {
+                        constructor_parameters.Add(param_attr.ParameterType, ConfiguredObjectPool.Instance.Get(ref_target_id));
+                    }
+                    else if (SyntaxPhaser.InvokeMethod(param_attr.ParameterValue, out var final_result))
+                    {
+                        constructor_parameters.Add(param_attr.ParameterType, final_result);
+                    }
+                    else
+                    {
+                        object? value;
+                        if (TypeExtractor.vt_mappings.ContainsKey(TypeExtractor.GetShortNameFormValueType(param_attr.ParameterType)))
+                            value = ObjectFactory.CreateValueType(TypeExtractor.GetShortNameFormValueType(param_attr.ParameterType), param_attr.ParameterValue);
+                        else
+                            value = ObjectFactory.CreateReferenceType(param_attr.ParameterType.Name, param_attr.ParameterValue);
+
+                        constructor_parameters.Add(param_attr.ParameterType, value);
+                    }
+                }
 
                 var target_constructor = prop.PropertyType.GetConstructor(constructor_parameters.Keys.ToArray());
 
                 prop.SetValue(invoked, target_constructor?.Invoke(constructor_parameters.Values.ToArray()));
             }
 
-            if (prop.HasAttribute(out ConfiguredObjectAttribute attr))
+            if (prop.HasAttribute(out ConfiguredObjectAttribute? attr))
             {
                 ConfiguredObjectPool.Instance.Add(attr!.Identifier, prop.GetValue(invoked)!);
             }

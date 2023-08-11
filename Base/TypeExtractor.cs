@@ -1,53 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SummerFramework.Base;
 
 public static class TypeExtractor
 {
-    internal static List<string> value_types = new List<string>()
+    internal static Dictionary<string, Type> vt_mappings = new()
     {
-        "string", "int", "long", "float", "double", "decimal", "bool"
+        { "string", typeof(string) },
+        { "int", typeof(int) },
+        { "long", typeof(long) },
+        { "float", typeof(float) },
+        { "double", typeof(double) },
+        { "bool", typeof(bool) },
+        { "decimal", typeof(decimal) },
+        { "char", typeof(char) },
+        { "uint", typeof(uint) },
+        { "ushort", typeof(ushort) },
+        { "ulong", typeof(ulong) }
     };
 
     public static Type? GetValueTypeFromShortName(string name)
     {
-        Type? result = null;
-
-        if (value_types.Contains(name))
-        {
-            switch (name)
-            {
-                case "string":
-                    result = typeof(string);
-                    break;
-                case "int":
-                    result = typeof(int);
-                    break;
-                case "long":
-                    result = typeof(long);
-                    break;
-                case "float":
-                    result = typeof(float);
-                    break;
-                case "double":
-                    result = typeof(double);
-                    break;
-                case "decimal":
-                    result = typeof(decimal);
-                    break;
-                case "bool":
-                    result = typeof(bool);
-                    break;
-            }
-        }
-
-        return result;
+        return vt_mappings[name];
     }
+
+    public static string GetShortNameFormValueType(Type target)
+    {
+        return (from vt in vt_mappings
+               where vt.Value.Equals(target)
+               select vt.Key).ToArray()[0];
+    }
+
     public static Type GetDelegateType(MethodInfo targetMethod, out Type[] paramTypes, out Type returnType, out ParameterInfo[] paramInfo)
     {
         //paramInfo
