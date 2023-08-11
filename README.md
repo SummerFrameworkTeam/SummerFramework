@@ -136,7 +136,7 @@ Just add a new property whose name is `invoked` and value is a `ref(target)` to 
 
 ```
 
-### 利用属性注入的上下文配置
+### Attributive Configuration Context
 
 Even if it's flexible and easy to manage the whole project. But it will be slow, inefficient and unreadable as the project is growing bigger.
 
@@ -146,6 +146,7 @@ So we provided class `AttributiveConfigurationContext` to make you configure mor
 
 using SummerFramework.Core.Configuration.Attributes;
 
+[ConfigurationClass]
 public static class Config
 {
   [ConfiguredObject("str")]

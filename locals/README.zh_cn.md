@@ -145,6 +145,7 @@ Console.WriteLine(str);
 
 using SummerFramework.Core.Configuration.Attributes;
 
+[ConfigurationClass]
 public static class Config
 {
   [ConfiguredObject("str")]
