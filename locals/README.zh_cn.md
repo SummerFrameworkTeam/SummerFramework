@@ -1,4 +1,4 @@
-![ICON](./showing_image.png)
+![ICON](../showing_image.png)
 
 [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/dotnetcore/CAP/master/LICENSE.txt)
 [![NuGet](http://img.shields.io/nuget/v/SummerFramework.svg)](https://www.nuget.org/packages/SummerFramework) [![Downloads](https://img.shields.io/nuget/dt/SummerFramework)](#)
