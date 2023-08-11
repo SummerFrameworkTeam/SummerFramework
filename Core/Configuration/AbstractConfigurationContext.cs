@@ -10,5 +10,5 @@ public abstract class AbstractConfigurationContext
 {
     protected abstract void Phase();
 
-    public object GetObject(string identifier) => ConfiguredObjectPool.Instance.Get(identifier);
+    public object? GetObject(string identifier) => ConfiguredObjectPool.Instance.Get(identifier);
 }

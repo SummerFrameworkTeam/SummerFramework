@@ -29,7 +29,7 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
                 MethodInfo? dlgt;
 
                 var current = ce["methods"][i];
-                SyntaxPhaser.PhaseRefExpression((string)current["invoked"], out var invoked);
+                SyntaxParser.ParserRefExpression((string)current["invoked"], out var invoked);
 
                 var identifier = ((string)current["identifier"]);
                 var link = (string)current["link"];
@@ -38,7 +38,7 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
 
                 if (dlgt != null)
                     ConfiguredMethodPool.Instance.Add(identifier,
-                        new MethodObject(ConfiguredObjectPool.Instance.CreateDeferringObject(invoked), dlgt));
+                        new MethodObject(ObjectFactory.CreateDeferringObject(invoked), dlgt));
             }
         }
 
@@ -47,8 +47,8 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
             object? obj;
 
             var current = ce["objects"][i];
-            var type = ((string)current["type"]);
-            var identifier = ((string)current["identifier"]);
+            var type = (string)current["type"];
+            var identifier = (string)current["identifier"];
             string value;
 
             if (current["value"].IsString &&
@@ -58,9 +58,9 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
                 var inv_chains = ((string)current["value"]).Split(" |> ");
 
                 if (inv_chains.Length > 1)
-                    obj = SyntaxPhaser.InvokeMethodsChainsytle(inv_chains);
+                    obj = SyntaxParser.InvokeMethodsChainsytle(inv_chains);
                 else
-                    SyntaxPhaser.InvokeMethod((string)current["value"], out obj);
+                    SyntaxParser.InvokeMethod((string)current["value"], out obj);
 
                 ConfiguredObjectPool.Instance.Add(identifier, obj!);
                 continue;

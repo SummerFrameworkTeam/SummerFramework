@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 
 using SummerFramework.Base;
+using SummerFramework.Base.Data;
 using SummerFramework.Core.Configuration.Attributes;
 
 namespace SummerFramework.Core.Configuration;
@@ -24,6 +25,12 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
 
     protected override void Phase()
     {
+        foreach (var method in ConfigurationClass.GetMethods())
+        {
+            if (method.HasAttribute<ConfiguredMethodAttribute>(out var attr))
+                ConfiguredMethodPool.Instance.Add(attr!.Identifier, new MethodObject(null, method));
+        }
+
         foreach (var prop in ConfigurationClass.GetProperties())
         {
             object? invoked = prop.GetMethod!.IsStatic ? null : Activator.CreateInstance(ConfigurationClass);
@@ -35,26 +42,10 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
                 var constructor_parameters = new Dictionary<Type, object?>();
 
                 foreach (var param_attr in param_attrs)
-                {
-                    if (SyntaxPhaser.PhaseRefExpression(param_attr.ParameterValue, out var ref_target_id))
-                    {
-                        constructor_parameters.Add(param_attr.ParameterType, ConfiguredObjectPool.Instance.Get(ref_target_id));
-                    }
-                    else if (SyntaxPhaser.InvokeMethod(param_attr.ParameterValue, out var final_result))
-                    {
-                        constructor_parameters.Add(param_attr.ParameterType, final_result);
-                    }
-                    else
-                    {
-                        object? value;
-                        if (TypeExtractor.vt_mappings.ContainsKey(TypeExtractor.GetShortNameFormValueType(param_attr.ParameterType)))
-                            value = ObjectFactory.CreateValueType(TypeExtractor.GetShortNameFormValueType(param_attr.ParameterType), param_attr.ParameterValue);
-                        else
-                            value = ObjectFactory.CreateReferenceType(param_attr.ParameterType.Name, param_attr.ParameterValue);
-
-                        constructor_parameters.Add(param_attr.ParameterType, value);
-                    }
-                }
+                    constructor_parameters.Add(param_attr.ParameterType, 
+                        ObjectFactory.CreateObject(
+                            TypeExtractor.GetShortNameFormValueType(param_attr.ParameterType), 
+                            param_attr.ParameterValue));
 
                 var target_constructor = prop.PropertyType.GetConstructor(constructor_parameters.Keys.ToArray());
 
@@ -65,6 +56,6 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
             {
                 ConfiguredObjectPool.Instance.Add(attr!.Identifier, prop.GetValue(invoked)!);
             }
-        } 
+        }
     }    
 }

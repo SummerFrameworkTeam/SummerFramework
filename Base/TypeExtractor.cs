@@ -16,6 +16,7 @@ public static class TypeExtractor
         { "double", typeof(double) },
         { "bool", typeof(bool) },
         { "decimal", typeof(decimal) },
+        { "short", typeof(short) },
         { "char", typeof(char) },
         { "uint", typeof(uint) },
         { "ushort", typeof(ushort) },

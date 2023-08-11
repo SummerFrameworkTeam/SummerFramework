@@ -9,9 +9,9 @@ using SummerFramework.Core.Configuration;
 
 namespace SummerFramework.Base;
 
-public static class SyntaxPhaser
+public static class SyntaxParser
 {
-    public static bool PhaseRefExpression(string assignment, out string result)
+    public static bool ParserRefExpression(string assignment, out string result)
     {
         try
         {
@@ -83,7 +83,7 @@ public static class SyntaxPhaser
             }
 
             result = meth.MethodBody.Invoke((!meth.MethodBody.IsStatic) ?
-                ConfiguredObjectPool.Instance.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject.Identifier) : null,
+                ObjectFactory.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject?.Identifier!) : null,
                     arguments.ToArray());
 
             flag = true;
@@ -99,20 +99,10 @@ public static class SyntaxPhaser
     public static object? InvokeMethodsChainsytle(string[] target)
     {
         var chainlist = target.ToList();
-        /*
-         * @add(2,2) |> @add(&,1)
-         * Spliting ↓
-         * [@add(2,2), @add(&,1)]
-         * If (first) ↓
-         * var v = Invoke(chainlist[first])
-         * Else ↓
-         * Replace "&" with v (previous value) => invoc
-         * v = Invoke(invoc);
-         */
         object? last_result = null;
         foreach (var item in chainlist)
         {
-            if (PhaseRefExpression(item, out var ref_target))
+            if (ParserRefExpression(item, out var ref_target))
             {
                 last_result = ConfiguredObjectPool.Instance.Get(ref_target);
                 continue;

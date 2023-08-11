@@ -8,10 +8,16 @@ namespace SummerFramework.Base.Data;
 
 public struct MethodObject
 {
-    public DeferredTask<object?> InvokedObject { get; set; }
+    public DeferredTask<object?>? InvokedObject { get; set; }
+
     public MethodInfo MethodBody { get; set; }
 
-    public MethodObject(DeferredTask<object?> io, MethodInfo mb)
+    public bool IsStatic
+    {
+        get => InvokedObject == null;
+    }
+
+    public MethodObject(DeferredTask<object?>? io, MethodInfo mb)
     {
         InvokedObject = io;
         MethodBody = mb;

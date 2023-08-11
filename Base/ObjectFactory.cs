@@ -1,8 +1,8 @@
 ﻿using System.Reflection;
-using System.Text.RegularExpressions;
 
 using LitJson;
 using SummerFramework.Core.Configuration;
+using SummerFramework.Core.Task;
 
 namespace SummerFramework.Base;
 
@@ -15,7 +15,7 @@ public static class ObjectFactory
         if (!TypeExtractor.vt_mappings.ContainsKey(type))
             return null;
 
-        if (SyntaxPhaser.PhaseRefExpression(value, out string target))
+        if (SyntaxParser.ParserRefExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -44,6 +44,21 @@ public static class ObjectFactory
             case "bool":
                 result = Convert.ToBoolean(value);
                 break;
+            case "char":
+                result = Convert.ToChar(value);
+                break;
+            case "short":
+                result = Convert.ToInt16(value);
+                break;
+            case "uint":
+                result = Convert.ToUInt32(value);
+                break;
+            case "ushort":
+                result = Convert.ToUInt16(value);
+                break;
+            case "ulong":
+                result = Convert.ToUInt64(value);
+                break;
         }
 
         return result;
@@ -55,7 +70,7 @@ public static class ObjectFactory
         Assembly current_assembly = Assembly.GetEntryAssembly()!;
 
         // If there is ref() expression -> find target and return
-        if (SyntaxPhaser.PhaseRefExpression(value, out string target))
+        if (SyntaxParser.ParserRefExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -66,7 +81,7 @@ public static class ObjectFactory
         {
             result = Activator.CreateInstance(current_assembly.FullName!, type);
 
-            return ((System.Runtime.Remoting.ObjectHandle) result)?.Unwrap();
+            return (result as System.Runtime.Remoting.ObjectHandle)?.Unwrap();
         }
 
         var v = JsonMapper.ToObject(value);
@@ -105,6 +120,34 @@ public static class ObjectFactory
         return null;
     }
 
+    public static object? CreateObject(string type, string value)
+    {
+        object? result;
+
+        if (SyntaxParser.ParserRefExpression(value, out var ref_target_id))
+        {
+            result = ConfiguredObjectPool.Instance.Get(ref_target_id);
+        }
+        else if (SyntaxParser.InvokeMethod(value, out var final_result))
+        {
+            result = final_result;
+        }
+        else if (value.StartsWith("@") || value.Contains(" |> "))
+        {
+            var splited = value.Split(" |> ");
+            result = (splited.Length > 1) ? SyntaxParser.InvokeMethodsChainsytle(splited) : final_result;
+        }
+        else
+        {
+            if (TypeExtractor.vt_mappings.ContainsKey(type))
+                result = CreateValueType(type, value);
+            else
+                result = CreateReferenceType(type, value);
+        }
+
+        return result;
+    }
+
     public static MethodInfo? GetFunction(string link)
     {
         MethodInfo? result;
@@ -116,5 +159,20 @@ public static class ObjectFactory
         var target_method = current_assembly.GetType(type_name)?.GetMethod(method_name);
         result = target_method;
         return result;
+    }
+
+    public static DeferredTask<object?>? CreateDeferringObject(string key)
+    {
+        var result = new DeferredTask<object?>($"deferred_init_{key}", 
+            () => ConfiguredObjectPool.Instance.Get(key));
+        ConfiguredObjectPool.Instance.DeferredObjectConfigurationTaskManager
+            .AddTask(result);
+        return result;
+    }
+
+    public static object? GetDeferringObject(string key)
+    {
+        return ConfiguredObjectPool.Instance.DeferredObjectConfigurationTaskManager
+            .RunSpecified(key);
     }
 }

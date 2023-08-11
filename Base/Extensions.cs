@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+
 using SummerFramework.Core.UnitTest;
 
 namespace SummerFramework.Base;
@@ -39,6 +38,6 @@ public static class Extensions
     public static bool HasAttribute<T>(this MemberInfo self, out T? result) where T : Attribute
     {
         result = self.GetCustomAttribute<T>();
-        return self != null;
+        return result != null;
     }
 }

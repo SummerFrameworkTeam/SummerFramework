@@ -1,16 +1,14 @@
 ﻿using System;
-using SummerFramework.Core.Task;
 
 namespace SummerFramework.Core.Configuration.Attributes;
 
+[AttributeUsage(AttributeTargets.Method)]
 public class ConfiguredMethodAttribute : Attribute
 {
     public string Identifier { get; set; }
-    public object? Invoked { get; set; }
 
-    public ConfiguredMethodAttribute(string id, string invoked)
+    public ConfiguredMethodAttribute(string id)
     {
         Identifier = id;
-        Invoked = ConfiguredObjectPool.Instance.CreateDeferringObject(invoked);
     }
 }

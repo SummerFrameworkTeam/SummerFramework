@@ -9,5 +9,5 @@ namespace SummerFramework.Base;
 public interface IDictionaryContainer<T>
 {
     void Add(string identifier, T item);
-    T Get(string identifer);
+    T? Get(string identifer);
 }
