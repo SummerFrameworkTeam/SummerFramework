@@ -29,4 +29,16 @@ public static class Extensions
     {
         return self.GetConstructors(BindingFlags.Public | BindingFlags.Instance).First(c => c.GetParameters().Length == 0);
     }
+
+    public static bool HasAttribute<T>(this Type self, out T? result) where T : Attribute
+    {
+        result = self.GetCustomAttribute<T>();
+        return self != null;
+    }
+
+    public static bool HasAttribute<T>(this MemberInfo self, out T? result) where T : Attribute
+    {
+        result = self.GetCustomAttribute<T>();
+        return self != null;
+    }
 }

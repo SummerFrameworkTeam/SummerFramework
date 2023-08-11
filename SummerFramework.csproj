@@ -4,10 +4,31 @@
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <PackageIcon>icon.png</PackageIcon>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <RepositoryUrl>https://github.com/SummerFrameworkTeam/SummerFramework</RepositoryUrl>
+        <RepositoryType>github</RepositoryType>
+        <Company>SummerFrameworkTeam</Company>
+        <Authors>Whistler</Authors>
+        <PackageProjectUrl>https://github.com/SummerFrameworkTeam/SummerFramework</PackageProjectUrl>
+        <Copyright>MIT License</Copyright>
+        <Description>Framework for .NET Progams to make you develop easier</Description>
+        <Version>1.0.1</Version>
     </PropertyGroup>
 
     <ItemGroup>
       <PackageReference Include="LitJson" Version="0.18.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="icon.png">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
+      <None Update="README.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
     </ItemGroup>
 
 </Project>

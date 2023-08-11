@@ -4,9 +4,9 @@ namespace SummerFramework.Core.Configuration;
 
 public static class Configuration
 {
-    public static ConfigurationContext GLOBAL { get; set; } = new ConfigurationContext("./configuration/global_configuration.json");
+    public static ResourceBasedConfigurationContext GLOBAL { get; set; } = new ResourceBasedConfigurationContext("./configuration/global_configuration.json");
 
-    public static ConfigurationContext AddConfiguration(string identifier)
+    public static ResourceBasedConfigurationContext AddConfiguration(string identifier)
     {
         string result = string.Empty;
 
@@ -32,6 +32,6 @@ public static class Configuration
         foreach (var dir in root.GetDirectories())
             file_search(dir);
         
-        return new ConfigurationContext(result);
+        return new ResourceBasedConfigurationContext(result);
     }
 }

@@ -28,7 +28,7 @@ public class DynamicProxyBuilder<T> where T : IInterceptor, new()
             if (tm.IsVirtual && !tm.IsStatic && !tm.IsFinal && !tm.IsAssembly && 
                 tm.GetCustomAttribute<AspectAttribute>() != null)
             {
-                var dt = ObjectFactory.GetDelegateType(tm, out var paramTypes, out var returnType, out var paramInfo);
+                var dt = TypeExtractor.GetDelegateType(tm, out var paramTypes, out var returnType, out var paramInfo);
                 var it = typeof(T);
 
                 var rm = rt.DefineMethod(tm.Name, MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.Final | MethodAttributes.HideBySig, returnType, paramTypes);

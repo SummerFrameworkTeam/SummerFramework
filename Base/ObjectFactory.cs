@@ -8,54 +8,14 @@ namespace SummerFramework.Base;
 
 public static class ObjectFactory
 {
-    internal static List<string> value_types = new List<string>()
-    {
-        "string", "int", "long", "float", "double", "decimal", "bool"
-    };
-
-    public static Type? GetValueTypeFromShortName(string name)
-    {
-        Type? result = null;
-
-        if (value_types.Contains(name))
-        {
-            switch (name)
-            {
-                case "string":
-                    result = typeof(string);
-                    break;
-                case "int":
-                    result = typeof(int);
-                    break;
-                case "long":
-                    result = typeof(long);
-                    break;
-                case "float":
-                    result = typeof(float);
-                    break;
-                case "double":
-                    result = typeof(double);
-                    break;
-                case "decimal":
-                    result = typeof(decimal);
-                    break;
-                case "bool":
-                    result = typeof(bool);
-                    break;
-            }
-        }
-
-        return result;
-    }
-
     public static object? CreateValueType(string type, string value)
     {
         object? result = null;
 
-        if (!value_types.Contains(type))
+        if (!TypeExtractor.value_types.Contains(type))
             return null;
 
-        if (IsReferenceExpression(value, out string target))
+        if (SyntaxPhaser.PhaseRefExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -95,7 +55,7 @@ public static class ObjectFactory
         Assembly current_assembly = Assembly.GetEntryAssembly()!;
 
         // If there is ref() expression -> find target and return
-        if (IsReferenceExpression(value, out string target))
+        if (SyntaxPhaser.PhaseRefExpression(value, out string target))
         {
             result = ConfiguredObjectPool.Instance.Get(target);
             return result;
@@ -123,10 +83,10 @@ public static class ObjectFactory
                 var p_type = (string) v[i]["type"];
                 var p_value = v[i]["value"];
 
-                if (value_types.Contains(p_type))
+                if (TypeExtractor.value_types.Contains(p_type))
                 {
                     parameter = CreateValueType(p_type, p_value.ToString());
-                    parameter_types.Add(GetValueTypeFromShortName(p_type));
+                    parameter_types.Add(TypeExtractor.GetValueTypeFromShortName(p_type));
                 }
                 else
                 {
@@ -145,104 +105,6 @@ public static class ObjectFactory
         return null;
     }
 
-    public static bool IsReferenceExpression(string assignment, out string result)
-    {
-        try
-        {
-            var o = JsonMapper.ToObject(assignment);
-            if (o.IsArray)
-            {
-                result = string.Empty;
-                return false;
-            }
-        } catch (Exception) { }
-
-        var pattren = new Regex(@"\((\w+)\)");
-
-        var match = pattren.Match(assignment).Value;
-        match = match.TrimStart('(');
-        match = match.TrimEnd(')');
-
-        result = match;
-
-        var b = pattren.IsMatch(assignment);
-        return b;
-    }
-
-    public static Type GetDelegateType(MethodInfo targetMethod, out Type[] paramTypes, out Type returnType, out ParameterInfo[] paramInfo)
-    {
-        //paramInfo
-        paramInfo = targetMethod.GetParameters();
-
-        //paramTypes
-        paramTypes = new Type[paramInfo.Length];
-        for (int i = 0; i < paramInfo.Length; i++)
-        {
-            paramTypes[i] = paramInfo[i].ParameterType;
-        }
-
-        //returnType
-        returnType = targetMethod.ReturnType;
-
-        //result
-        Type result;
-
-        if (returnType == typeof(void))
-        {
-            result = paramTypes.Length switch
-            {
-                0 => typeof(Action),
-                1 => typeof(Action<>).MakeGenericType(paramTypes),
-                2 => typeof(Action<,>).MakeGenericType(paramTypes),
-                3 => typeof(Action<,,>).MakeGenericType(paramTypes),
-                4 => typeof(Action<,,,>).MakeGenericType(paramTypes),
-                5 => typeof(Action<,,,,>).MakeGenericType(paramTypes),
-                6 => typeof(Action<,,,,,>).MakeGenericType(paramTypes),
-                7 => typeof(Action<,,,,,,>).MakeGenericType(paramTypes),
-                8 => typeof(Action<,,,,,,,>).MakeGenericType(paramTypes),
-                9 => typeof(Action<,,,,,,,,>).MakeGenericType(paramTypes),
-                10 => typeof(Action<,,,,,,,,,>).MakeGenericType(paramTypes),
-                11 => typeof(Action<,,,,,,,,,,>).MakeGenericType(paramTypes),
-                12 => typeof(Action<,,,,,,,,,,,>).MakeGenericType(paramTypes),
-                13 => typeof(Action<,,,,,,,,,,,,>).MakeGenericType(paramTypes),
-                14 => typeof(Action<,,,,,,,,,,,,,>).MakeGenericType(paramTypes),
-                15 => typeof(Action<,,,,,,,,,,,,,,>).MakeGenericType(paramTypes),
-                _ => typeof(Action<,,,,,,,,,,,,,,,>).MakeGenericType(paramTypes),
-            };
-        }
-        else
-        {
-            Type[] arr = new Type[paramTypes.Length + 1];
-            for (int i = 0; i < paramTypes.Length; i++)
-            {
-                arr[i] = paramTypes[i];
-            }
-            arr[paramTypes.Length] = returnType;
-            result = paramTypes.Length switch
-            {
-                0 => typeof(Func<>).MakeGenericType(arr),
-                1 => typeof(Func<,>).MakeGenericType(arr),
-                2 => typeof(Func<,,>).MakeGenericType(arr),
-                3 => typeof(Func<,,,>).MakeGenericType(arr),
-                4 => typeof(Func<,,,,>).MakeGenericType(arr),
-                5 => typeof(Func<,,,,,>).MakeGenericType(arr),
-                6 => typeof(Func<,,,,,,>).MakeGenericType(arr),
-                7 => typeof(Func<,,,,,,,>).MakeGenericType(arr),
-                8 => typeof(Func<,,,,,,,,>).MakeGenericType(arr),
-                9 => typeof(Func<,,,,,,,,,>).MakeGenericType(arr),
-                10 => typeof(Func<,,,,,,,,,,>).MakeGenericType(arr),
-                11 => typeof(Func<,,,,,,,,,,,>).MakeGenericType(arr),
-                12 => typeof(Func<,,,,,,,,,,,,>).MakeGenericType(arr),
-                13 => typeof(Func<,,,,,,,,,,,,,>).MakeGenericType(arr),
-                14 => typeof(Func<,,,,,,,,,,,,,,>).MakeGenericType(arr),
-                15 => typeof(Func<,,,,,,,,,,,,,,,>).MakeGenericType(arr),
-                _ => typeof(Func<,,,,,,,,,,,,,,,,>).MakeGenericType(arr),
-            };
-        }
-
-        return result;
-    }
-
     public static MethodInfo? GetFunction(string link)
     {
         MethodInfo? result;
@@ -254,97 +116,5 @@ public static class ObjectFactory
         var target_method = current_assembly.GetType(type_name)?.GetMethod(method_name);
         result = target_method;
         return result;
-    }
-
-    public static bool IsMethodInvoke(string invocation, out object? result)
-    {
-        bool flag;
-
-        if (invocation.StartsWith('@'))
-        {
-            var pattren = new Regex(@"\((\S+)\)");
-            //012345678
-            //@add(1,1)
-            //a = 0, b = 4
-            //len = 3
-            var meth_name = string.Empty;
-
-            var b = 0;
-            for (int i = 0; i < invocation.Length; i++)
-            {
-                var curr = invocation[i].ToString();
-
-                if (curr.Equals("("))
-                {
-                    b = i;
-                    break;
-                }
-            }
-
-            for (int i = 1; i < b; i++)
-                meth_name += invocation[i].ToString();
-
-            var args_str = pattren.Match(invocation).Value.TrimStart('(').TrimEnd(')').Split(',');
-
-            var meth = ConfiguredMethodPool.Instance.Get(meth_name);
-
-            if (meth.MethodBody.GetParameters().ToList().Count != args_str.Length)
-                throw new ArgumentException($"The number of argument dosen't match! (Need:{meth.MethodBody.GetParameters().ToList().Count}, Actual: {args_str.Length})");
-
-            var arguments = new List<object?>();
-            for (int i = 0; i < args_str.Length; i++)
-            {
-                var param = meth.MethodBody.GetParameters()[i];
-                var p_type = param.ParameterType;
-
-                var arg = args_str[i];
-                
-                arguments.Add(Convert.ChangeType(arg, p_type));
-            }
-
-            result = meth.MethodBody.Invoke((!meth.MethodBody.IsStatic) ? 
-                ConfiguredObjectPool.Instance.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject.Identifier) : null, 
-                    arguments.ToArray());
-
-            flag = true;
-        }
-        else
-        {
-            flag = false;
-            result = null;
-        }
-        return flag;
-    }
-
-    public static object? InvokeChainsytle(string[] target)
-    {
-        var chainlist = target.ToList();
-        /*
-         * @add(2,2) |> @add(&,1)
-         * Spliting ↓
-         * [@add(2,2), @add(&,1)]
-         * If (first) ↓
-         * var v = Invoke(chainlist[first])
-         * Else ↓
-         * Replace "&" with v (previous value) => invoc
-         * v = Invoke(invoc);
-         */
-        object? last_result = null;
-        foreach (var item in chainlist)
-        {
-            if (IsReferenceExpression(item, out var ref_target))
-            {
-                last_result = ConfiguredObjectPool.Instance.Get(ref_target);
-                continue;
-            }
-
-            if (chainlist.IndexOf(item) == 0)
-                IsMethodInvoke(item, out last_result);
-
-            var invoc = item.Replace("&", Convert.ToString(last_result));
-            IsMethodInvoke(invoc, out last_result);
-        }
-
-        return last_result;
     }
 }
