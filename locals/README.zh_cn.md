@@ -54,4 +54,4 @@ context.GetObject("str")?.Log();
 
 4. 在控制台中您应该就可以看到（绿色的）"Hello Summer!"字样了！
 
-![CONSOLE](./docs/assets/console.png)
+![CONSOLE](../docs/assets/console.png)
