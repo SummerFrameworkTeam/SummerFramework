@@ -14,5 +14,9 @@ public class ConfiguredObjectPool : LazySingleton<ConfiguredObjectPool>, IDictio
 
     public void Add(string key, object value) => this.Objects[key] = value;
 
-    public object? Get(string key) => this.Objects[key];
+    public object? Get(string key)
+    {
+        this.Objects.TryGetValue(key, out var value);
+        return value;
+    }
 }

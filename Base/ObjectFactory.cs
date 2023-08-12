@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 
 using LitJson;
+
 using SummerFramework.Core.Configuration;
 using SummerFramework.Core.Task;
 
@@ -10,14 +11,16 @@ public static class ObjectFactory
 {
     public static object? CreateValueType(string type, string value)
     {
-        object? result = null;
+        object? result;
 
         if (!TypeExtractor.vt_mappings.ContainsKey(type))
             return null;
 
-        if (SyntaxParser.ParserRefExpression(value, out string target))
+        if ((result = SyntaxParser.Parse(value)
+            .ParseRefExpression()
+            .ParseChainsytleInvocation()
+            .Result) != null)
         {
-            result = ConfiguredObjectPool.Instance.Get(target);
             return result;
         }
 
@@ -66,13 +69,12 @@ public static class ObjectFactory
 
     public static object? CreateReferenceType(string type, string value)
     {
-        object? result = null;
+        object? result;
         Assembly current_assembly = Assembly.GetEntryAssembly()!;
 
         // If there is ref() expression -> find target and return
-        if (SyntaxParser.ParserRefExpression(value, out string target))
+        if ((result = SyntaxParser.Parse(value).ParseRefExpression()) != null)
         {
-            result = ConfiguredObjectPool.Instance.Get(target);
             return result;
         }
 
@@ -124,18 +126,11 @@ public static class ObjectFactory
     {
         object? result;
 
-        if (SyntaxParser.ParserRefExpression(value, out var ref_target_id))
+        if ((result = SyntaxParser.Parse(value)
+            .ParseRefExpression()
+            .ParseChainsytleInvocation().Result) != null)
         {
-            result = ConfiguredObjectPool.Instance.Get(ref_target_id);
-        }
-        else if (SyntaxParser.InvokeMethod(value, out var final_result))
-        {
-            result = final_result;
-        }
-        else if (value.StartsWith("@") || value.Contains(" |> "))
-        {
-            var splited = value.Split(" |> ");
-            result = (splited.Length > 1) ? SyntaxParser.InvokeMethodsChainsytle(splited) : final_result;
+            return result;
         }
         else
         {
@@ -144,7 +139,7 @@ public static class ObjectFactory
             else
                 result = CreateReferenceType(type, value);
         }
-
+        
         return result;
     }
 

@@ -1,5 +1,5 @@
 ﻿using System.Reflection;
-
+using System.Text.RegularExpressions;
 using LitJson;
 
 using SummerFramework.Base;
@@ -14,12 +14,13 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
     public ResourceBasedConfigurationContext(string path)
     {
         Path = path;
-        this.Phase();
+        this.Parse();
     }
 
-    protected override void Phase()
+    protected override void Parse()
     {
         var context = File.ReadAllText(Path);
+        // ce: configuration entry
         var ce = JsonMapper.ToObject(context);
 
         if (ce["methods"] != null)
@@ -29,7 +30,8 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
                 MethodInfo? dlgt;
 
                 var current = ce["methods"][i];
-                SyntaxParser.ParserRefExpression((string)current["invoked"], out var invoked);
+                var pattren = new Regex(@"\((\w+)\)");
+                var invoked = pattren.Match((string)current["invoked"]).Value.Trim('(', ')');
 
                 var identifier = ((string)current["identifier"]);
                 var link = (string)current["link"];
@@ -51,21 +53,6 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
             var identifier = (string)current["identifier"];
             string value;
 
-            if (current["value"].IsString &&
-                (((string)current["value"]).StartsWith("@") ||
-                ((string)current["value"]).Contains(" |> ")))
-            {
-                var inv_chains = ((string)current["value"]).Split(" |> ");
-
-                if (inv_chains.Length > 1)
-                    obj = SyntaxParser.InvokeMethodsChainsytle(inv_chains);
-                else
-                    SyntaxParser.InvokeMethod((string)current["value"], out obj);
-
-                ConfiguredObjectPool.Instance.Add(identifier, obj!);
-                continue;
-            }
-
             if (TypeExtractor.vt_mappings.ContainsKey(type))
             {
                 value = ((string)current["value"]);
@@ -80,5 +67,10 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
             if (obj != null)
                 ConfiguredObjectPool.Instance.Add(identifier, obj);
         }
+    }
+
+    public static ResourceBasedConfigurationContext Create(string path)
+    {
+        return new ResourceBasedConfigurationContext(path);
     }
 }

@@ -9,38 +9,68 @@ using SummerFramework.Core.Configuration;
 
 namespace SummerFramework.Base;
 
-public static class SyntaxParser
+public sealed class SyntaxParser
 {
-    public static bool ParserRefExpression(string assignment, out string result)
+    // disable external access
+    private SyntaxParser(string expr)
     {
-        try
-        {
-            var o = JsonMapper.ToObject(assignment);
-            if (o.IsArray)
-            {
-                result = string.Empty;
-                return false;
-            }
-        }
-        catch (Exception) { }
-
-        var pattren = new Regex(@"\((\w+)\)");
-
-        var match = pattren.Match(assignment).Value;
-        match = match.TrimStart('(');
-        match = match.TrimEnd(')');
-
-        result = match;
-
-        var b = pattren.IsMatch(assignment);
-        return b;
+        this.expr = expr;
     }
 
-    public static bool InvokeMethod(string invocation, out object? result)
+    private object? result;
+    public object? Result
     {
-        bool flag;
+        get
+        {
+            // Reset after returning
+            var temp = result;
+            result = null;
+            return temp;
+        }
 
-        if (invocation.StartsWith('@'))
+        private set => this.result = value;
+    }
+
+    private string expr;
+    private bool assigned = false;
+
+    public SyntaxParser ParseRefExpression()
+    {
+        if (assigned)
+            return this;
+
+        try
+        {
+            var o = JsonMapper.ToObject(expr);
+            if (o.IsArray)
+                result = null;
+        }
+        catch (JsonException) { }
+        finally
+        {
+            var pattren = new Regex(@"\((\w+)\)");
+
+            if (pattren.IsMatch(expr))
+            {
+                var match = pattren.Match(expr).Value.TrimStart('(').TrimEnd(')');
+
+                result = ConfiguredObjectPool.Instance.Get(match);
+                assigned = true;
+            }
+            else
+            {
+                result = null;
+            }
+        }
+        return this;
+    }
+
+    public SyntaxParser ParseMethodInvocation()
+    {
+        if (assigned)
+            return this;
+
+        if (expr.StartsWith('@'))
         {
             var pattren = new Regex(@"\((\S+)\)");
             //012345678
@@ -50,9 +80,9 @@ public static class SyntaxParser
             var meth_name = string.Empty;
 
             var b = 0;
-            for (int i = 0; i < invocation.Length; i++)
+            for (int i = 0; i < expr.Length; i++)
             {
-                var curr = invocation[i].ToString();
+                var curr = expr[i].ToString();
 
                 if (curr.Equals("("))
                 {
@@ -62,9 +92,9 @@ public static class SyntaxParser
             }
 
             for (int i = 1; i < b; i++)
-                meth_name += invocation[i].ToString();
+                meth_name += expr[i].ToString();
 
-            var args_str = pattren.Match(invocation).Value.TrimStart('(').TrimEnd(')').Split(',');
+            var args_str = pattren.Match(expr).Value.TrimStart('(').TrimEnd(')').Split(',');
 
             var meth = ConfiguredMethodPool.Instance.Get(meth_name);
 
@@ -85,36 +115,63 @@ public static class SyntaxParser
             result = meth.MethodBody.Invoke((!meth.MethodBody.IsStatic) ?
                 ObjectFactory.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject?.Identifier!) : null,
                     arguments.ToArray());
-
-            flag = true;
+            assigned = true;
         }
         else
-        {
-            flag = false;
             result = null;
-        }
-        return flag;
+
+        return this;
     }
 
-    public static object? InvokeMethodsChainsytle(string[] target)
+    public SyntaxParser ParseChainsytleInvocation()
     {
-        var chainlist = target.ToList();
+        if (assigned)
+            return this;
+
+        var chainlist = expr.Split(" |> ").ToList();
+
+        if (chainlist.Count == 1)
+        {
+            result = Parse(chainlist[0])
+                .ParseRefExpression()
+                .ParseMethodInvocation().Result;
+
+            assigned = true;
+            return this;
+        }
+
         object? last_result = null;
         foreach (var item in chainlist)
         {
-            if (ParserRefExpression(item, out var ref_target))
+            if (chainlist.IndexOf(item) == 0)
             {
-                last_result = ConfiguredObjectPool.Instance.Get(ref_target);
+                if (MatchRefExpression(item))
+                    last_result = Parse(item).ParseRefExpression().Result;
+                else
+                    last_result = Parse(item).ParseMethodInvocation().Result;
+
                 continue;
             }
 
-            if (chainlist.IndexOf(item) == 0)
-                InvokeMethod(item, out last_result);
-
-            var invoc = item.Replace("&", Convert.ToString(last_result));
-            InvokeMethod(invoc, out last_result);
+            var replced_item = item.Replace("&", Convert.ToString(last_result));
+            last_result = Parse(replced_item).ParseMethodInvocation().Result;
         }
 
-        return last_result;
+        if (last_result != null)
+        {
+            result = last_result;
+            assigned = true;
+        }
+        return this;
     }
+
+    // Syntax.Parse("ref(target)")
+    public static SyntaxParser Parse(string expr)
+    {
+        return new SyntaxParser(expr);
+    }
+
+    public static bool MatchRefExpression(string target) => new Regex(@"[ref]\((\w+)\)").IsMatch(target);
+
+    public override string ToString() => result?.ToString()!;
 }

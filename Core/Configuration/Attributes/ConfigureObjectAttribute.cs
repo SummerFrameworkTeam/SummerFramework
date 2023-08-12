@@ -3,11 +3,11 @@
 namespace SummerFramework.Core.Configuration.Attributes;
 
 [AttributeUsage(AttributeTargets.Property)]
-public class ConfiguredObjectAttribute : Attribute
+public class ConfigureObjectAttribute : Attribute
 {
     public string Identifier { get; set; }
 
-    public ConfiguredObjectAttribute(string id)
+    public ConfigureObjectAttribute(string id)
     {
         Identifier = id;
     }

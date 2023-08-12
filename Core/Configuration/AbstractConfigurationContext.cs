@@ -8,7 +8,7 @@ namespace SummerFramework.Core.Configuration;
 
 public abstract class AbstractConfigurationContext
 {
-    protected abstract void Phase();
+    protected abstract void Parse();
 
     public object? GetObject(string identifier) => ConfiguredObjectPool.Instance.Get(identifier);
 }

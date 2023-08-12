@@ -3,11 +3,11 @@
 namespace SummerFramework.Core.Configuration.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
-public class ConfiguredMethodAttribute : Attribute
+public class ConfigureMethodAttribute : Attribute
 {
     public string Identifier { get; set; }
 
-    public ConfiguredMethodAttribute(string id)
+    public ConfigureMethodAttribute(string id)
     {
         Identifier = id;
     }

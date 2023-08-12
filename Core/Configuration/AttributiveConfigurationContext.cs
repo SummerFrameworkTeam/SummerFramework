@@ -16,18 +16,18 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
     internal AttributiveConfigurationContext(Type config_class)
     {
         ConfigurationClass = config_class;
-        this.Phase();
+        this.Parse();
     }
 
     public static AttributiveConfigurationContext Create(Type config_class) => new(config_class);
 
     public static AttributiveConfigurationContext Create<T>() where T : class => Create(typeof(T));
 
-    protected override void Phase()
+    protected override void Parse()
     {
         foreach (var method in ConfigurationClass.GetMethods())
         {
-            if (method.HasAttribute<ConfiguredMethodAttribute>(out var attr))
+            if (method.HasAttribute<ConfigureMethodAttribute>(out var attr))
                 ConfiguredMethodPool.Instance.Add(attr!.Identifier, new MethodObject(null, method));
         }
 
@@ -35,9 +35,9 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
         {
             object? invoked = prop.GetMethod!.IsStatic ? null : Activator.CreateInstance(ConfigurationClass);
 
-            if (prop.GetCustomAttributes<ConfiguredParametersAttribute>().Any())
+            if (prop.GetCustomAttributes<ConfigureParametersAttribute>().Any())
             {
-                var param_attrs = prop.GetCustomAttributes<ConfiguredParametersAttribute>();
+                var param_attrs = prop.GetCustomAttributes<ConfigureParametersAttribute>();
 
                 var constructor_parameters = new Dictionary<Type, object?>();
 
@@ -52,10 +52,14 @@ public class AttributiveConfigurationContext : AbstractConfigurationContext
                 prop.SetValue(invoked, target_constructor?.Invoke(constructor_parameters.Values.ToArray()));
             }
 
-            if (prop.HasAttribute(out ConfiguredObjectAttribute? attr))
+            if (prop.HasAttribute(out SetValueAttribute? sv_attr))
             {
-                ConfiguredObjectPool.Instance.Add(attr!.Identifier, prop.GetValue(invoked)!);
+                prop.SetValue(invoked, SyntaxParser.Parse(sv_attr!.Expression)
+                    .ParseChainsytleInvocation().Result);
             }
+
+            if (prop.HasAttribute(out ConfigureObjectAttribute? co_attr))
+                ConfiguredObjectPool.Instance.Add(co_attr!.Identifier, prop.GetValue(invoked)!);
         }
     }    
 }
