@@ -57,7 +57,7 @@ public class DynamicProxyBuilder<T> where T : IInterceptor, new()
                 il.DeclareLocal(it);
 
                 // Define return type
-                LocalBuilder re = null;
+                LocalBuilder? re = null;
 
                 if (returnType != typeof(void))
                     re = il.DeclareLocal(returnType);

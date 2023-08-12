@@ -6,15 +6,17 @@ using System.Text.RegularExpressions;
 using LitJson;
 
 using SummerFramework.Core.Configuration;
+using SummerFramework.Core.Configuration.Scope;
 
 namespace SummerFramework.Base;
 
 public sealed class SyntaxParser
 {
     // disable external access
-    private SyntaxParser(string expr)
+    private SyntaxParser(string expr, ConfigurationScope scope)
     {
         this.expr = expr;
+        this.Scope = scope;
     }
 
     private object? result;
@@ -33,6 +35,8 @@ public sealed class SyntaxParser
 
     private string expr;
     private bool assigned = false;
+
+    public ConfigurationScope Scope { get; private set; }
 
     public SyntaxParser ParseRefExpression()
     {
@@ -54,7 +58,7 @@ public sealed class SyntaxParser
             {
                 var match = pattren.Match(expr).Value.TrimStart('(').TrimEnd(')');
 
-                result = ConfiguredObjectPool.Instance.Get(match);
+                result = Scope.ObjectPool.Get(match);
                 assigned = true;
             }
             else
@@ -96,7 +100,7 @@ public sealed class SyntaxParser
 
             var args_str = pattren.Match(expr).Value.TrimStart('(').TrimEnd(')').Split(',');
 
-            var meth = ConfiguredMethodPool.Instance.Get(meth_name);
+            var meth = Scope.MethodPool.Get(meth_name);
 
             if (meth.MethodBody.GetParameters().ToList().Count != args_str.Length)
                 throw new ArgumentException($"The number of argument dosen't match! (Need:{meth.MethodBody.GetParameters().ToList().Count}, Actual: {args_str.Length})");
@@ -113,7 +117,7 @@ public sealed class SyntaxParser
             }
 
             result = meth.MethodBody.Invoke((!meth.MethodBody.IsStatic) ?
-                ObjectFactory.GetDeferringObject(ConfiguredMethodPool.Instance.Get(meth_name).InvokedObject?.Identifier!) : null,
+                ObjectFactory.GetDeferringObject(Scope.MethodPool.Get(meth_name).InvokedObject?.Identifier!, Scope) : null,
                     arguments.ToArray());
             assigned = true;
         }
@@ -132,7 +136,7 @@ public sealed class SyntaxParser
 
         if (chainlist.Count == 1)
         {
-            result = Parse(chainlist[0])
+            result = Parse(chainlist[0], this.Scope)
                 .ParseRefExpression()
                 .ParseMethodInvocation().Result;
 
@@ -146,15 +150,15 @@ public sealed class SyntaxParser
             if (chainlist.IndexOf(item) == 0)
             {
                 if (MatchRefExpression(item))
-                    last_result = Parse(item).ParseRefExpression().Result;
+                    last_result = Parse(item, this.Scope).ParseRefExpression().Result;
                 else
-                    last_result = Parse(item).ParseMethodInvocation().Result;
+                    last_result = Parse(item, this.Scope).ParseMethodInvocation().Result;
 
                 continue;
             }
 
             var replced_item = item.Replace("&", Convert.ToString(last_result));
-            last_result = Parse(replced_item).ParseMethodInvocation().Result;
+            last_result = Parse(replced_item, this.Scope).ParseMethodInvocation().Result;
         }
 
         if (last_result != null)
@@ -166,9 +170,9 @@ public sealed class SyntaxParser
     }
 
     // Syntax.Parse("ref(target)")
-    public static SyntaxParser Parse(string expr)
+    public static SyntaxParser Parse(string expr, ConfigurationScope scope)
     {
-        return new SyntaxParser(expr);
+        return new SyntaxParser(expr, scope);
     }
 
     public static bool MatchRefExpression(string target) => new Regex(@"[ref]\((\w+)\)").IsMatch(target);

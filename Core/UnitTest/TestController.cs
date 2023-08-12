@@ -9,7 +9,7 @@ namespace SummerFramework.Core.UnitTest;
 
 public static class TestController
 {
-    public static Logger logger { get; private set; } = LoggerFactory.CreateLogger("main_test");
+    public static Logger Logger { get; private set; } = LoggerFactory.CreateLogger("main_test");
 
     public static void Run()
     {
@@ -27,18 +27,9 @@ public static class TestController
                 {
                     if (method.GetCustomAttribute<TestAttribute>() != null && method.IsStatic)
                     {
-                        logger.Info($"Test Method<{method.Name}> Start:");
+                        Logger.Info($"Test Method<{method.Name}> Start:");
                         method.Invoke(null, null);
-                        logger.Info($"Test Method<{method.Name}> End!");
-                    }
-
-                    if (method.GetCustomAttribute<TimerAttribute>() != null && method.IsStatic)
-                    {
-                        var t1 = DateTime.Now;
-                        method.Invoke(null, null);
-                        var t2 = DateTime.Now;
-
-                        logger.Custom("TIMER", $"{t2 - t1}", ConsoleColor.White);
+                        Logger.Info($"Test Method<{method.Name}> End!");
                     }
                 }
             }  

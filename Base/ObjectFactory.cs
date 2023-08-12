@@ -3,20 +3,21 @@
 using LitJson;
 
 using SummerFramework.Core.Configuration;
+using SummerFramework.Core.Configuration.Scope;
 using SummerFramework.Core.Task;
 
 namespace SummerFramework.Base;
 
 public static class ObjectFactory
 {
-    public static object? CreateValueType(string type, string value)
+    public static object? CreateValueType(string type, string value, ConfigurationScope scope)
     {
         object? result;
 
         if (!TypeExtractor.vt_mappings.ContainsKey(type))
             return null;
 
-        if ((result = SyntaxParser.Parse(value)
+        if ((result = SyntaxParser.Parse(value, scope)
             .ParseRefExpression()
             .ParseChainsytleInvocation()
             .Result) != null)
@@ -67,13 +68,13 @@ public static class ObjectFactory
         return result;
     }
 
-    public static object? CreateReferenceType(string type, string value)
+    public static object? CreateReferenceType(string type, string value, ConfigurationScope scope)
     {
         object? result;
         Assembly current_assembly = Assembly.GetEntryAssembly()!;
 
         // If there is ref() expression -> find target and return
-        if ((result = SyntaxParser.Parse(value).ParseRefExpression()) != null)
+        if ((result = SyntaxParser.Parse(value, scope).ParseRefExpression()) != null)
         {
             return result;
         }
@@ -102,12 +103,12 @@ public static class ObjectFactory
 
                 if (TypeExtractor.vt_mappings.ContainsKey(p_type))
                 {
-                    parameter = CreateValueType(p_type, p_value.ToString());
+                    parameter = CreateValueType(p_type, p_value.ToString(), scope);
                     parameter_types.Add(TypeExtractor.GetValueTypeFromShortName(p_type));
                 }
                 else
                 {
-                    CreateReferenceType(p_type, p_value.ToString());
+                    CreateReferenceType(p_type, p_value.ToString(), scope);
                 }
 
                 parameters.Add(parameter);
@@ -122,11 +123,11 @@ public static class ObjectFactory
         return null;
     }
 
-    public static object? CreateObject(string type, string value)
+    public static object? CreateObject(string type, string value, ConfigurationScope scope)
     {
         object? result;
 
-        if ((result = SyntaxParser.Parse(value)
+        if ((result = SyntaxParser.Parse(value, scope)
             .ParseRefExpression()
             .ParseChainsytleInvocation().Result) != null)
         {
@@ -135,9 +136,9 @@ public static class ObjectFactory
         else
         {
             if (TypeExtractor.vt_mappings.ContainsKey(type))
-                result = CreateValueType(type, value);
+                result = CreateValueType(type, value, scope);
             else
-                result = CreateReferenceType(type, value);
+                result = CreateReferenceType(type, value, scope);
         }
         
         return result;
@@ -156,18 +157,18 @@ public static class ObjectFactory
         return result;
     }
 
-    public static DeferredTask<object?>? CreateDeferringObject(string key)
+    public static DeferredTask<object?>? CreateDeferringObject(string key, ConfigurationScope scope)
     {
         var result = new DeferredTask<object?>($"deferred_init_{key}", 
-            () => ConfiguredObjectPool.Instance.Get(key));
-        ConfiguredObjectPool.Instance.DeferredObjectConfigurationTaskManager
+            () => scope.ObjectPool.Get(key));
+        scope.ObjectPool.DeferredObjectConfigurationTaskManager
             .AddTask(result);
         return result;
     }
 
-    public static object? GetDeferringObject(string key)
+    public static object? GetDeferringObject(string key, ConfigurationScope scope)
     {
-        return ConfiguredObjectPool.Instance.DeferredObjectConfigurationTaskManager
+        return scope.ObjectPool.DeferredObjectConfigurationTaskManager
             .RunSpecified(key);
     }
 }

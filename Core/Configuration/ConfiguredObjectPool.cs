@@ -3,20 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 
 using SummerFramework.Base;
+using SummerFramework.Core.Configuration.Scope;
 using SummerFramework.Core.Task;
 
 namespace SummerFramework.Core.Configuration;
 
-public class ConfiguredObjectPool : LazySingleton<ConfiguredObjectPool>, IDictionaryContainer<object>
+public class ConfiguredObjectPool : IDictionaryContainer<object>
 {
-    protected Dictionary<string, object> Objects { get; set; } = new();
+    protected Dictionary<string, object> objects = new();
+
     public TaskManager<object?> DeferredObjectConfigurationTaskManager { get; protected set; } = new();
+    public ConfigurationScope Scope { get; internal set; }
 
-    public void Add(string key, object value) => this.Objects[key] = value;
-
-    public object? Get(string key)
+    public ConfiguredObjectPool(ConfigurationScope? scope = null)
     {
-        this.Objects.TryGetValue(key, out var value);
-        return value;
+        Scope = scope ?? Configuration.GlobalScope;
     }
+
+    public void Add(string key, object value) => this.objects[key] = value;
+
+    public object? Get(string key) => this.objects[key];
 }

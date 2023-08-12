@@ -1,19 +1,19 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <PackageIcon>icon.png</PackageIcon>
-        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageReadmeFile>README_NUGET.md</PackageReadmeFile>
         <RepositoryUrl>https://github.com/SummerFrameworkTeam/SummerFramework</RepositoryUrl>
         <RepositoryType>github</RepositoryType>
         <Company>SummerFrameworkTeam</Company>
         <Authors>Whistler</Authors>
         <PackageProjectUrl>https://github.com/SummerFrameworkTeam/SummerFramework</PackageProjectUrl>
         <Copyright>MIT License</Copyright>
-        <Description>Framework for .NET Progams to make you develop easier</Description>
-        <Version>1.0.1.1</Version>
+        <Description>Framework for .NET Programs to make you develop easier</Description>
+        <Version>1.0.2</Version>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,6 +24,10 @@
       <None Update="icon.png">
         <Pack>True</Pack>
         <PackagePath>\</PackagePath>
+      </None>
+      <None Update="README_NUGET.md">
+        <PackagePath>\</PackagePath>
+        <Pack>True</Pack>
       </None>
       <None Update="README.md">
         <Pack>True</Pack>

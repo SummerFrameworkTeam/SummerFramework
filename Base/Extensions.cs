@@ -16,12 +16,12 @@ public static class Extensions
 
     public static void Log(this object self)
     {
-        TestController.logger.Info(self.ToString()!);
+        TestController.Logger.Info(self.ToString()!);
     }
 
     public static void ForeachPrint<T>(this T[] self)
     {
-        self.ToList().ForEach(i => TestController.logger.Info(i?.ToString()!));
+        self.ToList().ForEach(i => TestController.Logger.Info(i?.ToString()!));
     }
 
     public static ConstructorInfo GetParameterlessConstructor(this Type self)

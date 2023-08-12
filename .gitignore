@@ -2,3 +2,4 @@ bin/
 obj/
 /packages/
 /configurations/
+README_NUGET.md

@@ -4,6 +4,7 @@ using LitJson;
 
 using SummerFramework.Base;
 using SummerFramework.Base.Data;
+using SummerFramework.Core.Configuration.Scope;
 
 namespace SummerFramework.Core.Configuration;
 
@@ -22,6 +23,9 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
         var context = File.ReadAllText(Path);
         // ce: configuration entry
         var ce = JsonMapper.ToObject(context);
+        var scope = ce["scope"].ToString();
+
+        this.Scope = Scope.Equals(string.Empty) ? Configuration.GlobalScope : new ConfigurationScope(scope);
 
         if (ce["methods"] != null)
         {
@@ -39,8 +43,8 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
                 dlgt = ObjectFactory.GetFunction(link);
 
                 if (dlgt != null)
-                    ConfiguredMethodPool.Instance.Add(identifier,
-                        new MethodObject(ObjectFactory.CreateDeferringObject(invoked), dlgt));
+                    Scope.MethodPool.Add(identifier,
+                        new MethodObject(ObjectFactory.CreateDeferringObject(invoked, Scope), dlgt));
             }
         }
 
@@ -56,16 +60,16 @@ public class ResourceBasedConfigurationContext : AbstractConfigurationContext
             if (TypeExtractor.vt_mappings.ContainsKey(type))
             {
                 value = ((string)current["value"]);
-                obj = ObjectFactory.CreateValueType(type, value);
+                obj = ObjectFactory.CreateValueType(type, value, Scope);
             }
             else
             {
                 value = current["value"].ToJson();
-                obj = ObjectFactory.CreateReferenceType(type, value);
+                obj = ObjectFactory.CreateReferenceType(type, value, Scope);
             }
 
             if (obj != null)
-                ConfiguredObjectPool.Instance.Add(identifier, obj);
+                Scope.ObjectPool.Add(identifier, obj);
         }
     }
 
