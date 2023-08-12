@@ -55,4 +55,4 @@ context.GetObject("str")?.Log();
 
 4. You can see "Hello Summer!" (green) in your console!
 
-![CONSOLE](.docs/assets/console.png)
+![CONSOLE](./docs/assets/console.png)
