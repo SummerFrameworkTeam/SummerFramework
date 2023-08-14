@@ -12,6 +12,18 @@ Documents: [English](./docs/en_us.md) | [简体中文](./docs/zh_cn.md)
 
 Framework for .NET programs in order to make development easier and faster!
 
+## Extensions
+
+SummerFramework allows and support some great extensions for SummerFramework.
+
+### Official Extensions
+
+![SFC_ICON](https://github.com/TheWhistlers/SummerFramework.Commandline/blob/main/sfcmd_icon.png)
+
+- #### [SummerFramework.Commandline](https://github.com/TheWhistlers/SummerFramework.Commandline)
+
+    Framework for .NET developers to make Commandline tools development easier and more effectively.
+
 ## Features
 
 - Manage obejcts through writing configuration file or attributes.
