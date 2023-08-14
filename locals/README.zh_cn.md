@@ -10,7 +10,19 @@ README语言: [English (英语)](../README.md) | 简体中文 (当前)
 
 Documents: [English](../docs/en_us.md) | [简体中文](../docs/zh_cn.md)
 
-为.NET程序准备的框架。
+为.NET开发者准备的应用程序框架。
+
+## 扩展包/插件
+
+SummerFramework将会允许并搭理支持SummerFramework相关扩展/插件的开发。
+
+### 官方扩展包/插件
+
+![SFC_ICON](https://github.com/TheWhistlers/SummerFramework.Commandline/blob/main/sfcmd_icon.png)
+
+- #### [SummerFramework.Commandline](https://github.com/TheWhistlers/SummerFramework.Commandline)
+
+    为.NET开发者做准备的命令行工具开发框架，使您的开发更加高效，并且可以脱离SummerFramework使用，不过还是推荐您一同使用。
 
 ## 特性
 - 允许您通过便携配置文件的方式装配对象。
